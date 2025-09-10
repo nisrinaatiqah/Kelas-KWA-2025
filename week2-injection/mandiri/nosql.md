@@ -37,7 +37,7 @@ password: {"$ne": null}
 
 ---
 
-### Step 2: Eksplorasi Admin Page
+### 2. Eksplorasi Admin Page
 
 * Di halaman admin hanya ada beberapa konsep cybersecurity (Encryption, Firewall, Phishing).
 * Tidak ada flag langsung yang muncul di halaman.
@@ -46,7 +46,7 @@ password: {"$ne": null}
 
 ---
 
-### Step 3: Cek Storage & Token
+### 3. Cek Storage & Token
 
 * Melalui **DevTools → Application → Session Storage**, ditemukan ada beberapa data:
 
@@ -61,7 +61,7 @@ password: {"$ne": null}
 
 ---
 
-### Step 4: Decode Token
+### 4. Decode Token
 
 * String token didapatkan:
 
