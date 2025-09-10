@@ -1,0 +1,102 @@
+Oke, aku susun write-up **Login Bender** dengan struktur yang sama seperti sebelumnya (Challenge Overview → Tools Used → Step by Step Solution → Solution Explanation → Security Recommendations).
+
+---
+
+# Juice-Shop Write-up: Login Bender
+
+## Challenge Overview
+
+**Title:** Login Bender
+
+**Category:** SQL Injection (SQLi)
+
+**Difficulty:** ⭐⭐⭐ (3/6)
+
+Tantangan ini bertujuan mengeksploitasi kerentanan SQL Injection pada form login untuk mendapatkan akses ke akun **Bender**, tanpa perlu mengetahui password aslinya.
+
+---
+
+## Tools Used
+
+* **Web Browser** → untuk mengakses aplikasi dan mencoba login.
+* **Burp Suite (opsional)** → untuk memodifikasi request login agar eksploitasi lebih fleksibel.
+
+---
+
+## Step by Step Solution
+
+### 1. Menemukan Email Bender
+
+Untuk bisa login sebagai Bender, kita perlu tahu alamat email miliknya.
+Alamat email ini dapat ditemukan dari **Administration Panel** (setelah login sebagai admin), yaitu:
+
+```
+bender@juice-sh.op
+```
+
+---
+
+### 2. Buka Halaman Login
+
+Masuk ke halaman login Juice Shop, di mana terdapat form **Email** dan **Password**.
+
+---
+
+### 3. Injeksi SQL pada Kolom Email
+
+Masukkan payload berikut ke kolom **Email**:
+
+```
+bender@juice-sh.op' AND 1=1--
+```
+
+Isi kolom **Password** dengan nilai acak (misalnya `bender123`).
+
+![alt text](assets/bender1.png)
+
+Payload ini akan memodifikasi query SQL agar kondisi autentikasi selalu benar.
+
+---
+
+### 4. Login Berhasil
+
+Setelah menekan **Log in**, sistem langsung mengautentikasi sebagai **Bender**, meskipun password salah.
+Eksploitasi berhasil karena bagian password pada query diabaikan oleh komentar SQL (`--`).
+
+![alt text](assets/bender2.png)
+
+---
+
+## Solution Explanation
+
+Kerentanan muncul karena aplikasi tidak melakukan validasi input dan masih menggunakan query SQL mentah. Query login yang rawan biasanya seperti ini:
+
+```sql
+SELECT * FROM users WHERE email = '$email' AND password = '$password';
+```
+
+Setelah injeksi dengan payload `bender@juice-sh.op' AND 1=1--`, query berubah menjadi:
+
+```sql
+SELECT * FROM users WHERE email = 'bender@juice-sh.op' AND 1=1--' AND password = 'aaaa';
+```
+
+**Penjelasan:**
+
+* `bender@juice-sh.op'` → email target.
+* `AND 1=1` → kondisi yang selalu benar.
+* `--` → mengomentari sisa query, sehingga password tidak diperiksa.
+
+Hasilnya, login berhasil tanpa memerlukan password asli.
+
+---
+
+## Security Recommendations
+
+Untuk mencegah SQL Injection di aplikasi nyata:
+
+1. **Gunakan Prepared Statements / Parameterized Queries** → agar input user tidak bisa mengubah logika query.
+2. **Validasi Input** → hanya terima format email valid pada field email.
+3. **Gunakan ORM (Object Relational Mapping)** → sehingga query dibuat otomatis tanpa raw SQL.
+4. **Error Handling Aman** → jangan tampilkan pesan error SQL yang bisa dimanfaatkan attacker.
+5. **Least Privilege** → akun database sebaiknya punya hak akses terbatas untuk mengurangi dampak jika terjadi eksploitasi.
